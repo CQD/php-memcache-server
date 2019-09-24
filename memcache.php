@@ -65,6 +65,8 @@ function runCmd($cmd, $sock)
         return cmdSet($args, $sock);
     case 'get':
         return cmdGet($args, $sock);
+    case 'delete':
+        return cmdDel($args, $sock);
 
     case 'version':
         return "VERSION {$GLOBALS['version']}";
@@ -74,7 +76,6 @@ function runCmd($cmd, $sock)
         return "ERROR";
     }
 }
-
 
 function cmdSet($args, $sock)
 {
@@ -116,6 +117,14 @@ function cmdGet($args, $sock)
     }
 
     return "END";
+}
+
+function cmdDel($args, $sock)
+{
+    list($key) = explode(' ', $args);
+    $keyExists = isset($GLOBALS['datastore'][$key]);
+    unset($GLOBALS['datastore'][$key]);
+    return $keyExists ? "DELETED" : 'NOT_FOUND';
 }
 
 /////////////////////////////////////////////////////////////
