@@ -59,6 +59,7 @@ function runCmd($cmd, $sock)
     $args = explode(' ', $cmd, 2);
     $cmd = $args[0] ?: '???';
     $args = isset($args[1]) ? ltrim($args[1]) : '';
+    $args = array_filter(explode(' ', $args), function($n){ return '' !== $n;});
 
     switch (strtolower($cmd)) {
     case 'set':
@@ -79,7 +80,8 @@ function runCmd($cmd, $sock)
 
 function cmdSet($args, $sock)
 {
-    list($key, $flags, $exp, $bytes) = explode(' ', $args);
+    list($key, $flags, $exp, $bytes) = $args;
+
     say("reading bites: $bytes");
 
     $data = '';
@@ -100,10 +102,8 @@ function cmdSet($args, $sock)
     return "STORED";
 }
 
-function cmdGet($args, $sock)
+function cmdGet($keys, $sock)
 {
-    $keys = explode(' ', $args);
-
     foreach($keys as $key){
         $data = $GLOBALS['datastore'][$key] ?? null;
         if (null === $data) {
@@ -121,7 +121,7 @@ function cmdGet($args, $sock)
 
 function cmdDel($args, $sock)
 {
-    list($key) = explode(' ', $args);
+    $key = $args[0];
     $keyExists = isset($GLOBALS['datastore'][$key]);
     unset($GLOBALS['datastore'][$key]);
     return $keyExists ? "DELETED" : 'NOT_FOUND';
