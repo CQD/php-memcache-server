@@ -50,7 +50,7 @@ foreach ($tests as $name => $func) {
 echo "\n";
 foreach ($tests as $name => $func) {
     printf(
-        "\033[33m%{$maxNameLen}s\033[m: ",
+        "\033[33m%-{$maxNameLen}s\033[m: ",
         $name
     );
 
