@@ -1,0 +1,23 @@
+name: CI
+
+on: [push]
+
+jobs:
+  Test:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-versions: ['7.0', '7.1', '7.2', '7.3']
+    name: Test on PHP ${{ matrix.php-versions }}
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install PHP
+      uses: shivammathur/setup-php@master
+      with:
+        php-version: ${{ matrix.php-versions }}
+    - name: Check PHP Version
+      run: php -v
+    - name: Run Test
+      run: php test.php
