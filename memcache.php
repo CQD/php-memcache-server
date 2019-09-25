@@ -81,6 +81,12 @@ function runCmd($cmd, $sock)
 function cmdSet($args, $sock)
 {
     list($key, $flags, $exp, $bytes) = $args;
+    foreach (['flags', 'exp', 'bytes'] as $fieldName) {
+        if (!is_numeric($$fieldName)) {
+            throw new \Exception("$fieldName should be numeric");
+        }
+    }
+
 
     say("reading bites: $bytes");
 
@@ -97,7 +103,12 @@ function cmdSet($args, $sock)
 
     $data = substr($data, 0 , -2);
     say("data is:" . json_encode($data));
-    $GLOBALS['datastore'][$key] = $data;
+    $GLOBALS['datastore'][$key] = [
+        'flags' => $flags,
+        'data' => $data,
+        'exp' => $exp,
+        'ctime' => time(),
+    ];
 
     return "STORED";
 }
@@ -105,7 +116,8 @@ function cmdSet($args, $sock)
 function cmdGet($keys, $sock)
 {
     foreach($keys as $key){
-        $data = $GLOBALS['datastore'][$key] ?? null;
+        clearExpired($key);
+        $data = $GLOBALS['datastore'][$key]['data'] ?? null;
         if (null === $data) {
             say("$key not in store");
             continue;
@@ -125,6 +137,22 @@ function cmdDel($args, $sock)
     $keyExists = isset($GLOBALS['datastore'][$key]);
     unset($GLOBALS['datastore'][$key]);
     return $keyExists ? "DELETED" : 'NOT_FOUND';
+}
+
+function clearExpired($key)
+{
+    $exp = $GLOBALS['datastore'][$key]['exp'] ?? null;
+    if (!$exp) {
+        return;
+    }
+
+    $birth = $GLOBALS['datastore'][$key]['ctime'];
+    $now = time();
+    if (
+        ($exp > 86400 * 30 && $now >= $exp)
+        || $now - $birth >= $exp) {
+        unset($GLOBALS['datastore'][$key]);
+    }
 }
 
 /////////////////////////////////////////////////////////////

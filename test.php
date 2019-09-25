@@ -30,6 +30,15 @@ $tests = [
         $memcache->delete('test');
         assertSame(false, $memcache->get('test'));
     },
+    'Basic expire' => function () use ($memcache) {
+        assertSame(false, $memcache->get('test'));
+
+        $memcache->set('test', 'test-expire', 1);
+        assertSame('test-expire', $memcache->get('test'));
+
+        sleep(1);
+        assertSame(false, $memcache->get('test'));
+    }
 ];
 
 
