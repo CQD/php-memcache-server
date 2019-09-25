@@ -22,4 +22,6 @@ Host name and port can also be specified. If not, `127.0.0.1` and `11211` will b
 
 This is developed on a PHP 7.3 machine. *Should* work with PHP 7.0 or above, but not guaranteed.
 
+## Testing
 
+Run `test.php` will run the test suite. Memcached extension is required to run the test suite.
