@@ -7,7 +7,7 @@ $port = 17012;
 
 if (!class_exists('Memcached')) {
     fputs(STDERR, "Memcached extension not installed, can not perform any test!\n");
-    exit;
+    exit(-1);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -15,6 +15,7 @@ if (!class_exists('Memcached')) {
 register_shutdown_function('destroyer');
 
 $memcache = initMemcached($port);
+$failed = false;
 
 $tests = [
     'Basic set/get/delete' => function () use ($memcache) {
@@ -47,6 +48,7 @@ foreach ($tests as $name => $func) {
     try {
         $errorMsg = $func();
     } catch (\Exception $e) {
+        $failed = true;
         $errorMsg = $e->getMessage();
     }
 
@@ -65,6 +67,7 @@ echo "\n";
 
 destroyer();
 
+exit($failed ? 1 : 0);
 ///////////////////////////////////////////////////////////////////////
 
 $tfp = null;
