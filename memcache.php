@@ -74,6 +74,10 @@ function runCmd($cmd, $sock)
     case 'delete':
         return cmdDel($args, $sock);
 
+    case 'incr':
+    case 'decr':
+        return cmdIncr($args, $sock, $cmd);
+
     case 'version':
         return "VERSION {$GLOBALS['version']}";
 
@@ -158,6 +162,35 @@ function cmdDel($args, $sock)
     $keyExists = isset($GLOBALS['datastore'][$key]);
     unset($GLOBALS['datastore'][$key]);
     return $keyExists ? "DELETED" : 'NOT_FOUND';
+}
+
+function cmdIncr($args, $sock, $cmd)
+{
+    if (count($args) !== 2) {
+        return 'ERROR';
+    }
+
+    list($key, $value) = $args;
+    $origValue = $GLOBALS['datastore'][$key]['data'] ?? null;
+
+    if (null === $origValue) {
+        return 'NOT_FOUND';
+    } elseif (!is_numeric($value)) {
+        return 'CLIENT_ERROR invalid numeric delta argument';
+    } elseif (!is_numeric($origValue)) {
+        return 'CLIENT_ERROR cannot increment or decrement non-numeric value';
+    }
+
+    if ('incr' === $cmd) {
+        $newValue = $origValue + $value;
+    } else {
+        $newValue = $origValue - $value;
+    }
+
+    $newValue = (0 > $newValue) ? 0 : $newValue;
+
+    $GLOBALS['datastore'][$key]['data'] = $newValue;
+    return $newValue;
 }
 
 function clearExpired($key)

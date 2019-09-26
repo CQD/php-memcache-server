@@ -98,6 +98,27 @@ $tests = [
         assertSame(false, $memcache->prepend('pend', 'prepend1'));
         assertSame(false, $memcache->get('pend'));
     },
+
+    'incr / decr' => function ($memcache) {
+        assertSame(true, $memcache->set('txt', 'TEXT3TEXT'));
+        assertSame(true, $memcache->set('num', 0));
+
+        assertSame(false, $memcache->increment('txt'));
+        assertSame(1, $memcache->increment('num'));
+        assertSame(1, (int) $memcache->get('num'));
+        assertSame(31, $memcache->increment('num', 30));
+        assertSame(31, (int) $memcache->get('num'));
+
+        assertSame(false, $memcache->decrement('txt'));
+        assertSame(30, $memcache->decrement('num'));
+        assertSame(30, (int) $memcache->get('num'));
+        assertSame(20, $memcache->decrement('num', 10));
+        assertSame(20, (int) $memcache->get('num'));
+        assertSame(0, $memcache->decrement('num', 99));
+        assertSame(0, (int) $memcache->get('num'));
+
+        $memcache->deleteMulti(['txt', 'num']);
+    },
 ];
 
 
