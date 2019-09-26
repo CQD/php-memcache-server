@@ -18,7 +18,7 @@ $memcache = initMemcached($port);
 $failed = false;
 
 $tests = [
-    'Basic set/get/delete' => function ($memcache) {
+    'Basic RWD' => function ($memcache) {
         assertSame(false, $memcache->get('test'));
 
         $memcache->set('test', 'miew');
@@ -39,6 +39,24 @@ $tests = [
 
         sleep(1);
         assertSame(false, $memcache->get('test'));
+    },
+
+    'Multiple RWD' => function ($memcache) {
+        $data = [
+            'k1' => 'K1',
+            'k2' => 'K2',
+            'k3' => 'K3',
+        ];
+
+        $keys = ['k0', 'k1', 'k2', 'k3', 'k4'];
+
+        assertSame(true, $memcache->setMulti($data));
+        assertSame($data, $memcache->getMulti($keys));
+
+        $expected = array_fill_keys($keys, true);
+        $expected['k0'] = Memcached::RES_NOTFOUND;
+        $expected['k4'] = Memcached::RES_NOTFOUND;
+        assertSame($expected, $memcache->deleteMulti($keys));
     },
 
     'add / replace' => function ($memcache) {
