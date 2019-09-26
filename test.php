@@ -21,20 +21,20 @@ $tests = [
     'Basic RWD' => function ($memcache) {
         assertSame(false, $memcache->get('test'));
 
-        $memcache->set('test', 'miew');
+        assertSame(true, $memcache->set('test', 'miew'));
         assertSame('miew', $memcache->get('test'));
 
-        $memcache->set('test', '2miew2');
+        assertSame(true, $memcache->set('test', '2miew2'));
         assertSame('2miew2', $memcache->get('test'));
 
-        $memcache->delete('test');
+        assertSame(true, $memcache->delete('test'));
         assertSame(false, $memcache->get('test'));
     },
 
     'Basic expire' => function ($memcache) {
         assertSame(false, $memcache->get('test'));
 
-        $memcache->set('test', 'test-expire', 1);
+        assertSame(true, $memcache->set('test', 'test-expire', 1));
         assertSame('test-expire', $memcache->get('test'));
 
         sleep(1);
