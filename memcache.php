@@ -25,8 +25,6 @@ while(true){
     socket_set_block($msgSock);
 
     while ($buf = socket_read($msgSock, 2048, PHP_NORMAL_READ)) {
-        say("buf: " . json_encode($buf));
-
         // 清掉前一個指令的 \r\n 的 \n
         $lf = socket_read($msgSock, 1, PHP_BINARY_READ);
         if ("\n" !== $lf) {
@@ -51,6 +49,7 @@ while(true){
 }
 
 socket_close($sock);
+say('Server stopped');
 
 /////////////////////////////////////////////////////////////
 
@@ -100,8 +99,6 @@ function cmdSet($args, $sock, $cmd)
         }
     }
 
-    say("reading bites: $bytes");
-
     $data = '';
     $currlen = 0;
     $targetSize = $bytes + 2;
@@ -131,7 +128,6 @@ function cmdSet($args, $sock, $cmd)
         $data = $GLOBALS['datastore'][$key]['data'] . $data;
     }
 
-    say("data is:" . json_encode($data));
     $GLOBALS['datastore'][$key] = [
         'flags' => $flags,
         'data' => $data,
@@ -152,10 +148,8 @@ function cmdGet($keys, $sock)
         clearExpired($key);
         $data = $GLOBALS['datastore'][$key]['data'] ?? null;
         if (null === $data) {
-            say("$key not in store");
             continue;
         }
-        say("value for $key is: " . json_encode($data));
         socket_write($sock, sprintf("VALUE %s %s %s\r\n", $key, '0', strlen($data)));
         socket_write($sock, $data);
         socket_write($sock, "\r\n");
