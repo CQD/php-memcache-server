@@ -18,7 +18,7 @@ $memcache = initMemcached($port);
 $failed = false;
 
 $tests = [
-    'Basic set/get/delete' => function () use ($memcache) {
+    'Basic set/get/delete' => function ($memcache) {
         assertSame(false, $memcache->get('test'));
 
         $memcache->set('test', 'miew');
@@ -31,7 +31,7 @@ $tests = [
         assertSame(false, $memcache->get('test'));
     },
 
-    'Basic expire' => function () use ($memcache) {
+    'Basic expire' => function ($memcache) {
         assertSame(false, $memcache->get('test'));
 
         $memcache->set('test', 'test-expire', 1);
@@ -41,7 +41,7 @@ $tests = [
         assertSame(false, $memcache->get('test'));
     },
 
-    'add / replace' => function () use ($memcache) {
+    'add / replace' => function ($memcache) {
         assertSame(false, $memcache->get('add-replace'));
 
         assertSame(false, $memcache->replace('add-replace', 'test-replace'));
@@ -56,7 +56,7 @@ $tests = [
         assertSame(false, $memcache->get('add-replace'));
     },
 
-    'append / prepend' => function () use ($memcache) {
+    'append / prepend' => function ($memcache) {
         $memcache->setOption(Memcached::OPT_COMPRESSION, false); // required to test append/prepend
 
         assertSame(false, $memcache->get('pend'));
@@ -97,7 +97,7 @@ foreach ($tests as $name => $func) {
 
     try {
         $memcache->setOption(Memcached::OPT_COMPRESSION, true);
-        $errorMsg = $func();
+        $errorMsg = $func($memcache);
     } catch (\Exception $e) {
         $failed = true;
         $errorMsg = $e->getMessage();
