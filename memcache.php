@@ -60,29 +60,34 @@ function runCmd($cmd, $sock)
     $args = isset($args[1]) ? ltrim($args[1]) : '';
     $args = array_filter(explode(' ', $args), function($n){ return '' !== $n;});
 
-    switch (strtolower($cmd)) {
-    case 'set':
-    case 'add':
-    case 'replace':
-    case 'append':
-    case 'prepend':
-        return cmdSet($args, $sock, $cmd);
-    case 'get':
-    case 'gets':
-        return cmdGet($args, $sock);
-    case 'delete':
-        return cmdDel($args, $sock);
+    try {
+        switch (strtolower($cmd)) {
+        case 'set':
+        case 'add':
+        case 'replace':
+        case 'append':
+        case 'prepend':
+            return cmdSet($args, $sock, $cmd);
+        case 'get':
+        case 'gets':
+            return cmdGet($args, $sock);
+        case 'delete':
+            return cmdDel($args, $sock);
 
-    case 'incr':
-    case 'decr':
-        return cmdIncr($args, $sock, $cmd);
+        case 'incr':
+        case 'decr':
+            return cmdIncr($args, $sock, $cmd);
 
-    case 'version':
-        return "VERSION {$GLOBALS['version']}";
+        case 'version':
+            return "VERSION {$GLOBALS['version']}";
 
-    // unknown command
-    default:
-        return "ERROR";
+        // unknown command
+        default:
+            return "ERROR";
+        }
+    } catch (\Exception $e) {
+        say('ERROR: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+        return "SERVER_ERROR " . $e->getMessage();
     }
 }
 
@@ -95,7 +100,7 @@ function cmdSet($args, $sock, $cmd)
     list($key, $flags, $exp, $bytes) = $args;
     foreach (['flags', 'exp', 'bytes'] as $fieldName) {
         if (!is_numeric($$fieldName)) {
-            throw new \Exception("$fieldName should be numeric");
+            return "CLIENT_ERROR $fieldName should be numeric";
         }
     }
 
