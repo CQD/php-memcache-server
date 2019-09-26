@@ -69,6 +69,7 @@ function runCmd($cmd, $sock)
     case 'prepend':
         return cmdSet($args, $sock, $cmd);
     case 'get':
+    case 'gets':
         return cmdGet($args, $sock);
     case 'delete':
         return cmdDel($args, $sock);
