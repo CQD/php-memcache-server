@@ -89,6 +89,10 @@ function runCmd($cmd, $sock)
 
 function cmdSet($args, $sock, $cmd)
 {
+    if (4 !== count($args)) {
+        return 'ERROR';
+    }
+
     list($key, $flags, $exp, $bytes) = $args;
     foreach (['flags', 'exp', 'bytes'] as $fieldName) {
         if (!is_numeric($$fieldName)) {
@@ -140,6 +144,10 @@ function cmdSet($args, $sock, $cmd)
 
 function cmdGet($keys, $sock)
 {
+    if (0 === count($keys)) {
+        return 'ERROR';
+    }
+
     foreach($keys as $key){
         clearExpired($key);
         $data = $GLOBALS['datastore'][$key]['data'] ?? null;
