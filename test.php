@@ -30,6 +30,7 @@ $tests = [
         $memcache->delete('test');
         assertSame(false, $memcache->get('test'));
     },
+
     'Basic expire' => function () use ($memcache) {
         assertSame(false, $memcache->get('test'));
 
@@ -38,7 +39,47 @@ $tests = [
 
         sleep(1);
         assertSame(false, $memcache->get('test'));
-    }
+    },
+
+    'add / replace' => function () use ($memcache) {
+        assertSame(false, $memcache->get('add-replace'));
+
+        assertSame(false, $memcache->replace('add-replace', 'test-replace'));
+        assertSame(true,  $memcache->add('add-replace', 'test-add'));
+        assertSame('test-add',  $memcache->get('add-replace'));
+
+        assertSame(true, $memcache->replace('add-replace', 'test-replace-2'));
+        assertSame(false,  $memcache->add('add-replace', 'test-add-2'));
+        assertSame('test-replace-2',  $memcache->get('add-replace'));
+
+        assertSame(true, $memcache->delete('add-replace'));
+        assertSame(false, $memcache->get('add-replace'));
+    },
+
+    'append / prepend' => function () use ($memcache) {
+        $memcache->setOption(Memcached::OPT_COMPRESSION, false); // required to test append/prepend
+
+        assertSame(false, $memcache->get('pend'));
+
+        assertSame(false, $memcache->append('pend', 'append1'));
+        assertSame(false, $memcache->get('pend'));
+        assertSame(false, $memcache->prepend('pend', 'prepend1'));
+        assertSame(false, $memcache->get('pend'));
+
+        assertSame(true, $memcache->set('pend', 'PEND'));
+
+        assertSame(true, $memcache->append('pend', 'append2'));
+        assertSame('PENDappend2', $memcache->get('pend'));
+        assertSame(true, $memcache->prepend('pend', 'prepend2'));
+        assertSame('prepend2PENDappend2', $memcache->get('pend'));
+
+        assertSame(true, $memcache->delete('pend'));
+
+        assertSame(false, $memcache->append('pend', 'append1'));
+        assertSame(false, $memcache->get('pend'));
+        assertSame(false, $memcache->prepend('pend', 'prepend1'));
+        assertSame(false, $memcache->get('pend'));
+    },
 ];
 
 
@@ -55,6 +96,7 @@ foreach ($tests as $name => $func) {
     );
 
     try {
+        $memcache->setOption(Memcached::OPT_COMPRESSION, true);
         $errorMsg = $func();
     } catch (\Exception $e) {
         $failed = true;

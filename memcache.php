@@ -63,7 +63,11 @@ function runCmd($cmd, $sock)
 
     switch (strtolower($cmd)) {
     case 'set':
-        return cmdSet($args, $sock);
+    case 'add':
+    case 'replace':
+    case 'append':
+    case 'prepend':
+        return cmdSet($args, $sock, $cmd);
     case 'get':
         return cmdGet($args, $sock);
     case 'delete':
@@ -78,7 +82,7 @@ function runCmd($cmd, $sock)
     }
 }
 
-function cmdSet($args, $sock)
+function cmdSet($args, $sock, $cmd)
 {
     list($key, $flags, $exp, $bytes) = $args;
     foreach (['flags', 'exp', 'bytes'] as $fieldName) {
@@ -86,7 +90,6 @@ function cmdSet($args, $sock)
             throw new \Exception("$fieldName should be numeric");
         }
     }
-
 
     say("reading bites: $bytes");
 
@@ -101,7 +104,24 @@ function cmdSet($args, $sock)
         return 'CLIENT_ERROR data not terminated properly with \r\n';
     }
 
+    $keyExists = isset($GLOBALS['datastore'][$key]);
+    if (
+        ('add'     === $cmd &&  $keyExists) ||
+        ('replace' === $cmd && !$keyExists) ||
+        ('append'  === $cmd && !$keyExists) ||
+        ('prepend' === $cmd && !$keyExists)
+    ) {
+        return 'NOT_STORED';
+    }
+
     $data = substr($data, 0 , -2);
+
+    if ('prepend' === $cmd) {
+        $data = $data . $GLOBALS['datastore'][$key]['data'];
+    } elseif ('append' === $cmd) {
+        $data = $GLOBALS['datastore'][$key]['data'] . $data;
+    }
+
     say("data is:" . json_encode($data));
     $GLOBALS['datastore'][$key] = [
         'flags' => $flags,
