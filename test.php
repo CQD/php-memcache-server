@@ -51,12 +51,20 @@ $tests = [
         $keys = ['k0', 'k1', 'k2', 'k3', 'k4'];
 
         assertSame(true, $memcache->setMulti($data));
+        foreach ($data as $k => $v) {
+            assertSame($v, $memcache->get($k));
+        }
         assertSame($data, $memcache->getMulti($keys));
 
         $expected = array_fill_keys($keys, true);
         $expected['k0'] = Memcached::RES_NOTFOUND;
         $expected['k4'] = Memcached::RES_NOTFOUND;
         assertSame($expected, $memcache->deleteMulti($keys));
+
+        assertSame([], $memcache->getMulti($keys));
+        foreach ($data as $k => $v) {
+            assertSame(false, $memcache->get($k));
+        }
     },
 
     'add / replace' => function ($memcache) {
