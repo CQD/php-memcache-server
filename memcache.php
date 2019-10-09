@@ -97,8 +97,8 @@ function cmdSet($args, $sock, $cmd)
         return 'ERROR';
     }
 
-    list($key, $flags, $exp, $bytes) = $args;
-    foreach (['flags', 'exp', 'bytes'] as $fieldName) {
+    list($key, $flag, $exp, $bytes) = $args;
+    foreach (['exp', 'bytes'] as $fieldName) {
         if (!is_numeric($$fieldName)) {
             return "CLIENT_ERROR $fieldName should be numeric";
         }
@@ -134,7 +134,7 @@ function cmdSet($args, $sock, $cmd)
     }
 
     $GLOBALS['datastore'][$key] = [
-        'flags' => $flags,
+        'flag' => $flag,
         'data' => $data,
         'exp' => $exp,
         'ctime' => time(),
@@ -151,11 +151,14 @@ function cmdGet($keys, $sock)
 
     foreach($keys as $key){
         clearExpired($key);
-        $data = $GLOBALS['datastore'][$key]['data'] ?? null;
+        $data = $GLOBALS['datastore'][$key] ?? null;
         if (null === $data) {
             continue;
         }
-        socket_write($sock, sprintf("VALUE %s %s %s\r\n", $key, '0', strlen($data)));
+
+        $flag = $data['flag'];
+        $data = $data['data'];
+        socket_write($sock, sprintf("VALUE %s %s %s\r\n", $key, $flag, strlen($data)));
         socket_write($sock, $data);
         socket_write($sock, "\r\n");
     }

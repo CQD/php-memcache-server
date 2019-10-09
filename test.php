@@ -41,6 +41,23 @@ $tests = [
         assertSame(false, $memcache->get('test'));
     },
 
+    'PHP datatype RWD' => function ($memcache) {
+        assertSame(false, $memcache->get('test'));
+
+        $values = [
+            'Array' => ['a'=>'A','b'=>'B'],
+            'Null' => null,
+        ];
+        foreach ($values as $type => $value) {
+            assertSame(true, $memcache->set('test', $value), "Set a {$type}");
+            assertSame($value, $memcache->get('test'), "Get a {$type}");
+        }
+
+        assertSame(true, $memcache->delete('test'));
+        assertSame(false, $memcache->get('test'));
+    },
+
+
     'Multiple RWD' => function ($memcache) {
         $data = [
             'k1' => 'K1',
